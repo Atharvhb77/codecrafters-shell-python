@@ -23,7 +23,7 @@ def main():
             if len(command.split(' ')) < 2:
                 print('')
             else:
-                print(command.split(' ')[1])
+                print(' '.join(command.split(' ')[1:]))
             
         else:
 

@@ -29,7 +29,7 @@ def main():
         elif command.split(' ')[0] == 'type':
             if len(command.split(' ')) < 2:
                 print('')
-            elif command.split(' ')[1] == 'echo' or command.split(' ')[1] == 'exit':
+            elif command.split(' ')[1] == 'echo' or command.split(' ')[1] == 'exit' or command.split(' ')[1] == 'type':
                 print(f'{command.split(' ')[1]} is a shell builtin')
             else:
                 print(f"{command.split(' ')[1]}: not found")

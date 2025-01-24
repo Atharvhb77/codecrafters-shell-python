@@ -18,7 +18,17 @@ def main():
             
             return command.split(' ')[1]
 
-        print(f"{command}: command not found")
+
+        elif command.split(' ')[0] == 'echo':
+            if len(command.split(' ')) < 2:
+                print('')
+            else:
+                print(command.split(' ')[1])
+            
+        else:
+
+
+            print(f"{command}: command not found")
 
         
 

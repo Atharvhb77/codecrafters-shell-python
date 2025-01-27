@@ -1,5 +1,5 @@
 import sys
-
+import shutil
 
 def main():
     
@@ -31,6 +31,10 @@ def main():
                 print('')
             elif command.split(' ')[1] == 'echo' or command.split(' ')[1] == 'exit' or command.split(' ')[1] == 'type':
                 print(f'{command.split(' ')[1]} is a shell builtin')
+
+            cmd_path = shutil.which(command.split(' ')[1])
+            if cmd_path:
+                print(f"{command.split(' ')[1]} is located at: {cmd_path}")
             else:
                 print(f"{command.split(' ')[1]}: not found")
 

@@ -34,7 +34,7 @@ def main():
 
             cmd_path = shutil.which(command.split(' ')[1])
             if cmd_path:
-                print(f"{command.split(' ')[1]} is located at: {cmd_path}")
+                print(f"{command.split(' ')[1]} is {cmd_path}")
             else:
                 print(f"{command.split(' ')[1]}: not found")
 

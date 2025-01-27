@@ -42,6 +42,9 @@ def main():
                     print(f"{cmd[1]}: not found")
 
         
+        elif cmd[0] == 'pwd':
+            current_dir = os.getcwd()
+            print(current_dir)
 
         else:
             cmd_path = shutil.which(cmd[0])
@@ -50,6 +53,8 @@ def main():
                 os.system(command)
             else:
                 print(f"{command}: command not found")
+
+        
 
         
 

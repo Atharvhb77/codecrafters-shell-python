@@ -1,5 +1,7 @@
 import sys
 import shutil
+import os
+
 
 def main():
     
@@ -9,47 +11,47 @@ def main():
     while True:
         sys.stdout.write("$ ")
         command = input()
+        cmd = command.split(' ')
         
-
-        if command.split(' ')[0] == 'exit':
+        if cmd[0] == 'exit':
             
-            if len(command.split(' ')) < 2:
+            if len(cmd) < 2:
                 return 0
             
-            return command.split(' ')[1]
+            return cmd[1]
 
 
-        elif command.split(' ')[0] == 'echo':
-            if len(command.split(' ')) < 2:
+        elif cmd[0] == 'echo':
+            if len(cmd) < 2:
                 print('')
             else:
-                print(' '.join(command.split(' ')[1:]))
+                print(' '.join(cmd[1:]))
             
         
-        elif command.split(' ')[0] == 'type':
-            if len(command.split(' ')) < 2:
+        elif cmd[0] == 'type':
+            if len(cmd) < 2:
                 print('')
-            elif command.split(' ')[1] == 'echo' or command.split(' ')[1] == 'exit' or command.split(' ')[1] == 'type':
-                print(f'{command.split(' ')[1]} is a shell builtin')
+            elif cmd[1] == 'echo' or cmd[1] == 'exit' or cmd[1] == 'type':
+                print(f'{cmd[1]} is a shell builtin')
 
             else:
-                cmd_path = shutil.which(command.split(' ')[1])
+                cmd_path = shutil.which(cmd[1])
                 if cmd_path:
-                    print(f"{command.split(' ')[1]} is {cmd_path}")
+                    print(f"{cmd[1]} is {cmd_path}")
                 else:
-                    print(f"{command.split(' ')[1]}: not found")
-
-
-
-        else:
-
-
-            print(f"{command}: command not found")
+                    print(f"{cmd[1]}: not found")
 
         
 
+        else:
+            cmd_path = shutil.which(cmd[0])
 
+            if cmd_path:
+                os.system(command)
+            else:
+                print(f"{command}: command not found")
 
+        
 
 
 

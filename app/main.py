@@ -24,9 +24,6 @@ def main():
         elif cmd[0] == 'echo':
             if len(cmd) < 2:
                 print('')
-            elif isinstance(cmd[1], str):
-                print(cmd[1:])
-                
             else:
                 print(' '.join(cmd[1:]))
             

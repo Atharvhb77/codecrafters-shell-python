@@ -47,8 +47,14 @@ def main():
             print(current_dir)
 
         elif cmd[0] == 'cd':
-            try:    
-                os.chdir(cmd[1])
+            
+            try:
+                if cmd[1] == '~':
+                    home_dir = os.path.expanduser("~")
+                    os.chdir(home_dir)
+                else:    
+                    os.chdir(cmd[1])
+
             except:
                 print(f'cd: {cmd[1]}: No such file or directory')
 

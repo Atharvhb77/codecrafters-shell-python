@@ -31,8 +31,7 @@ def main():
         elif cmd[0] == 'type':
             if len(cmd) < 2:
                 print('')
-            cmnd_arr = ['echo', 'exit', 'type', 'pwd']
-            elif cmd[1] in cmnd-arr:
+            elif cmd[1] == 'echo' or cmd[1] == 'exit' or cmd[1] == 'type' or cmd[1] == 'pwd' or :
                 print(f'{cmd[1]} is a shell builtin')
 
             else:

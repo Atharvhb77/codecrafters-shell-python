@@ -31,7 +31,7 @@ def main():
         elif cmd[0] == 'type':
             if len(cmd) < 2:
                 print('')
-            elif cmd[1] == 'echo' or cmd[1] == 'exit' or cmd[1] == 'type' or cmd[1] == 'pwd' or :
+            elif cmd[1] == 'echo' or cmd[1] == 'exit' or cmd[1] == 'type' or cmd[1] == 'pwd' or cmd[1] == 'cd':
                 print(f'{cmd[1]} is a shell builtin')
 
             else:
@@ -45,6 +45,14 @@ def main():
         elif cmd[0] == 'pwd':
             current_dir = os.getcwd()
             print(current_dir)
+
+        elif cmd[0] == 'cd':
+            try:    
+                os.chdir(cmd[1])
+            except:
+                print(f'cd: {cmd[1]}: No such file or directory')
+
+
 
         else:
             cmd_path = shutil.which(cmd[0])

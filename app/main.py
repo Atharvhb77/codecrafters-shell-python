@@ -1,6 +1,7 @@
 import sys
 import shutil
 import os
+import shlex
 
 
 def main():
@@ -26,13 +27,9 @@ def main():
                 print('')
             else:
                 args = command[5:].strip()
-                if args.startswith("'") or args.startswith('"'):
-                    quote_char = args[0]  
-                    if args.endswith(quote_char):
-                        print(args[1:-1])
+                parsed_args = shlex.split(args)
+                print(" ".join(parsed_args))
                 
-                else:
-                    print(' '.join(cmd[1:]))
             
         
         elif cmd[0] == 'type':

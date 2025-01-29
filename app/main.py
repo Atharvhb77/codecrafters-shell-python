@@ -64,7 +64,8 @@ def main():
 
 
         else:
-            cmd_path = shutil.which(shlex.split(cmd[0]))
+            args = shlex.split(command)
+            cmd_path = shutil.which(args[0])
 
             if cmd_path:
                 os.system(command)

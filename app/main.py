@@ -32,7 +32,7 @@ def main():
                         print(args[1:-1])
                 
                 else:
-                    print(' '.join(cmd[1:].strip()))
+                    print(' '.join(cmd[1:]).strip())
             
         
         elif cmd[0] == 'type':

@@ -11,7 +11,7 @@ def main():
     while True:
         sys.stdout.write("$ ")
         command = input()
-        cmd = command.split(' ')
+        cmd = command.split()
         
         if cmd[0] == 'exit':
             
@@ -32,7 +32,7 @@ def main():
                         print(args[1:-1])
                 
                 else:
-                    print(' '.join(cmd[1:]).strip())
+                    print(' '.join(cmd[1:]))
             
         
         elif cmd[0] == 'type':

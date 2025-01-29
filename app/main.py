@@ -29,7 +29,6 @@ def main():
                 args = command[5:].strip()
                 parsed_args = shlex.split(args)
                 print(" ".join(parsed_args))
-                
             
         
         elif cmd[0] == 'type':
@@ -65,7 +64,7 @@ def main():
 
 
         else:
-            cmd_path = shutil.which(cmd[0])
+            cmd_path = shutil.which(parsed_args)
 
             if cmd_path:
                 os.system(command)

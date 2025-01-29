@@ -25,7 +25,14 @@ def main():
             if len(cmd) < 2:
                 print('')
             else:
-                print(' '.join(cmd[1:]))
+                args = command[5:].strip()
+                if args.startswith("'") or args.startswith('"'):
+                    quote_char = args[0]  
+                    if args.endswith(quote_char):
+                        print(args[1:-1])
+                
+                else:
+                    print(' '.join(cmd[1:]))
             
         
         elif cmd[0] == 'type':

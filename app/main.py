@@ -75,9 +75,9 @@ def main():
         sys.stdout.write("$ ")
         command = input()
         redirect = True
-        if '>1' in command:
+        if '1>' in command:
             command, outputFile = command.split('1>')
-        elif '>2' in command:
+        elif '2>' in command:
             command, outputFile = command.split('2>')
         elif '>' in command:
             command, outputFile = command.split('>')

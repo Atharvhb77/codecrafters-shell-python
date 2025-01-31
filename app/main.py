@@ -9,9 +9,21 @@ import readline  # Import readline for tab completion
 builtins = ["type", "echo", "exit", "pwd", "cd"]
 tab_state = {}
 def complete_builtin(text, state):
-    matches = [cmd for cmd in builtins if cmd.startswith(text)]
+    if text not in tab_state:
+        tab_state[text] = {'count': 0, 'matches': []}
     
-    # If no match is found in builtins, check for external executables
+    # If we are still in the first TAB press, ring the bell
+    if tab_state[text]['count'] == 0:
+        # Bell on the first TAB press
+        if state == 0:
+            sys.stdout.write('\a')  # Ring the bell
+            sys.stdout.flush()
+            return None  # Don't return anything on first press, just ring the bell
+        else:
+            tab_state[text]['count'] = 1
+    
+    # Now check for the matching executables in PATH
+    matches = tab_state[text]['matches']
     if not matches:
         # Get the directories in PATH
         path_dirs = os.environ.get('PATH', '').split(os.pathsep)
@@ -24,10 +36,21 @@ def complete_builtin(text, state):
                     if filename.startswith(text) and os.access(os.path.join(path_dir, filename), os.X_OK):
                         matches.append(filename)
     
-    # Return the match for tab completion
+    # If there are multiple matches, we return the list on the second TAB press
+    if len(matches) > 1 and tab_state[text]['count'] == 1:
+        # Print the matches on a new line, separated by 2 spaces
+        sys.stdout.write("\n" + "  ".join(matches) + "\n$ ")
+        sys.stdout.flush()
+        return None
+    
+    # If we have only one match or it's the second TAB press, we return the matched command
     if state < len(matches):
         return matches[state] + " "  # Add space after autocompletion
     return None
+
+
+
+
 
 # Enable tab completion for built-in commands
 readline.parse_and_bind("tab: complete")

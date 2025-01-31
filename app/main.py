@@ -40,7 +40,7 @@ def main():
                         content = parsed_args[0]
 
                     with open(parsed_args[2], "w") as file:
-                        file.write(content, '\n')
+                        file.write(content + '\n')
                     
                 else:
                     print(" ".join(parsed_args))

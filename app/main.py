@@ -26,7 +26,6 @@ def main():
             if len(cmd) < 2:
                 print('')
             
-
             else:
                 args = command[5:].strip()
                 parsed_args = shlex.split(args)
@@ -39,10 +38,13 @@ def main():
                             content = file.read()
                     else:
                         content = parsed_args[0]
+                    
 
                     with open(parsed_args[2], "w") as file:
                         file.write(content + '\n')
                     
+                elif parsed_args[1] == '2>':
+                    print(parsed_args[0]) 
                 else:
                     print(" ".join(parsed_args))
             

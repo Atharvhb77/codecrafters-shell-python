@@ -43,9 +43,9 @@ def other(command) -> List[str]: # str[0] -> output, str[1] -> error
     if path:
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            return [result.stdout, ""]
-        except Exception as e:
-            return ["", e]
+            return [result.stdout.strip(), ""]
+        except subprocess.CalledProcessError as e:
+            return ["", e.stderr.strip()]
     else:
         return ["", f"{cmd[0]}: command not found"]
     
@@ -103,6 +103,8 @@ def main():
             else:
                 print(error)
         
+        if command.startswith("exit"):
+            return 0
         
             
 

@@ -103,8 +103,7 @@ def main():
             else:
                 print(error)
         
-        if command.startswith("exit"):
-            return 0
+        
             
 
 if __name__ == "__main__":

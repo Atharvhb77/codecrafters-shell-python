@@ -25,10 +25,25 @@ def main():
         elif cmd[0] == 'echo':
             if len(cmd) < 2:
                 print('')
+            
+
             else:
                 args = command[5:].strip()
                 parsed_args = shlex.split(args)
-                print(" ".join(parsed_args))
+                
+                if parsed_args[1] == '1>':
+                    content = ""
+                    if os.path.exists(parsed_args[0]):
+                        with open(parsed_args[0], "r") as file:
+                            content = file.read()
+                    else:
+                        content = parsed_args[0]
+
+                    with open(parsed_args[2], "w") as file:
+                        file.write(content)
+                    
+                else:
+                    print(" ".join(parsed_args))
             
         
         elif cmd[0] == 'type':

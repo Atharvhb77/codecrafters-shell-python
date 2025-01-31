@@ -81,11 +81,11 @@ def main():
         redirect = True
         left = ""
         if '1>' in command:
-            command, outputFile = command.split('1>')
+            left, outputFile = command.split('1>')
         elif '2>' in command:
-            command, outputFile = command.split('2>')
+            left, outputFile = command.split('2>')
         elif '>' in command:
-            command, outputFile = command.split('>')
+            left, outputFile = command.split('>')
         else:
             redirect = False
 

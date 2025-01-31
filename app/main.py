@@ -44,7 +44,12 @@ def main():
                         file.write(content + '\n')
                     
                 elif parsed_args[1] == '2>':
-                    print(parsed_args[0]) 
+                    if os.path.exists(parsed_args[2]):
+                        print(parsed_args[0])
+                    else:
+                        print(f"{parsed_args[2]}: No such file or directory")
+
+                 
                 else:
                     print(" ".join(parsed_args))
             

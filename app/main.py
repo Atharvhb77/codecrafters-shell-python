@@ -78,46 +78,63 @@ def main():
         append = False  # Track if we need to append output
         left = ""
         outputFile = ""
+        errorFile = ""
+        stderr_redirect = False
 
-        # Check for redirections
-        if "1>>" in command or ">>" in command:  # Handle append
+        # Check for error redirection (2>)
+        if "2>>" in command:
+            left, errorFile = command.split("2>>")
+            stderr_redirect = True
+            append = True
+            redirect = True
+        elif "2>" in command:
+            left, errorFile = command.split("2>")
+            stderr_redirect = True
+            redirect = True
+
+        # Check for stdout redirection (>> or >)
+        elif "1>>" in command or ">>" in command:  # Append output
             left, outputFile = command.split("1>>") if "1>>" in command else command.split(">>")
             append = True
             redirect = True
-        elif "1>" in command or ">" in command:  # Handle overwrite
+        elif "1>" in command or ">" in command:  # Overwrite output
             left, outputFile = command.split("1>") if "1>" in command else command.split(">")
-            redirect = True
-        elif "2>" in command:  # Handle error redirection
-            left, outputFile = command.split("2>")
             redirect = True
 
         if redirect:
             left = left.strip()
-            outputFile = outputFile.strip()
+            if stderr_redirect:
+                errorFile = errorFile.strip()
+            else:
+                outputFile = outputFile.strip()
             output, error = execute(left)
         else:
             output, error = execute(command)
 
+        # Handle redirections
         if redirect:
-            if "2>" in command:  # Redirect stderr
-                with open(outputFile, "w") as file:
-                    file.write(error.strip())
+            if stderr_redirect:  # Redirect stderr
+                mode = "a" if append else "w"
+                with open(errorFile, mode) as file:
+                    if error:
+                        file.write(error.strip() + "\n")  # Ensure newline
                 if output:
                     print(output.strip())
 
-            elif "1>>" in command or ">>" in command:  # Append output
+            elif append:  # Append stdout
                 with open(outputFile, "a") as file:
                     if output:
-                        file.write(output.strip() + "\n")  # Ensure newline after each append
+                        file.write(output.strip() + "\n")  # Ensure newline
                     if error:
                         print(error.strip())
 
-            elif "1>" in command or ">" in command:  # Overwrite output
+            else:  # Overwrite stdout
                 with open(outputFile, "w") as file:
                     if output:
                         file.write(output.strip() + "\n")
                     if error:
                         print(error.strip())
+
         else:
             if output:
                 print(output)

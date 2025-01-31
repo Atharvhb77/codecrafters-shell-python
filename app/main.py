@@ -9,8 +9,22 @@ import readline  # Import readline for tab completion
 builtins = ["type", "echo", "exit", "pwd", "cd"]
 
 def complete_builtin(text, state):
-    """Autocomplete function for built-in commands."""
     matches = [cmd for cmd in builtins if cmd.startswith(text)]
+    
+    # If no match is found in builtins, check for external executables
+    if not matches:
+        # Get the directories in PATH
+        path_dirs = os.environ.get('PATH', '').split(os.pathsep)
+        
+        # Loop through each directory in PATH and check for executables
+        for path_dir in path_dirs:
+            if os.path.isdir(path_dir):  # Ensure it's a valid directory
+                # Get the list of files in the directory
+                for filename in os.listdir(path_dir):
+                    if filename.startswith(text) and os.access(os.path.join(path_dir, filename), os.X_OK):
+                        matches.append(filename)
+    
+    # Return the match for tab completion
     if state < len(matches):
         return matches[state] + " "  # Add space after autocompletion
     return None

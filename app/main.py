@@ -42,10 +42,14 @@ def other(command) -> List[str]: # str[0] -> output, str[1] -> error
     path = shutil.which(cmd[0])
     if path:
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            return [result.stdout.strip(), ""]
-        except subprocess.CalledProcessError as e:
-            return ["", e.stderr.strip()]
+            res = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+            )
+            return [res.stdout.rstrip(), res.stderr.rstrip()]
+        except Exception as e:
+            return ["", str(e)]
     else:
         return ["", f"{cmd[0]}: command not found"]
     
@@ -58,7 +62,7 @@ def execute(command) -> List[str]:
         output, error = echo(command)
     
     elif cmd[0] == "exit":
-        output, error = cmd[1], ""
+        output, error = "", ""
     
     elif cmd[0] == "pwd":
         output, error = os.getcwd(), ""

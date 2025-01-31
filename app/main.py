@@ -30,7 +30,7 @@ def main():
             else:
                 args = command[5:].strip()
                 parsed_args = shlex.split(args)
-                if len(parsed_args) <= 2:
+                if len(parsed_args) < 2:
                     print(parsed_args[1])
                 elif parsed_args[1] == '1>':
                     content = ""

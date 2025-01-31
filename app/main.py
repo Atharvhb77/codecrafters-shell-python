@@ -104,7 +104,7 @@ def main():
         else:
             if output != "":
                 print(output)
-            else:
+            elif error != '':
                 print(error)
         
         if command.startswith("exit"):

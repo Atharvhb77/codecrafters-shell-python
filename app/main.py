@@ -78,16 +78,25 @@ def main():
     while True:
         sys.stdout.write("$ ")
         command = input()
-        redirect = True
+
+
+        redirect = False
+        append = False  # Track if we need to append output
         left = ""
-        if '1>' in command:
-            left, outputFile = command.split('1>')
-        elif '2>' in command:
-            left, outputFile = command.split('2>')
-        elif '>' in command:
-            left, outputFile = command.split('>')
-        else:
-            redirect = False
+        outputFile = ""
+
+
+        if "1>>" in command or ">>" in command:  # Handle append
+            left, outputFile = command.split("1>>") if "1>>" in command else command.split(">>")
+            append = True
+            redirect = True
+        elif "1>" in command or ">" in command:  # Handle overwrite
+            left, outputFile = command.split("1>") if "1>" in command else command.split(">")
+            redirect = True
+        elif "2>" in command:  # Handle error redirection
+            left, outputFile = command.split("2>")
+            redirect = True
+    
 
         
 
@@ -104,16 +113,24 @@ def main():
                     file.write(error.strip())
                 if output != "":
                     print(output.strip())
+            
+            elif "1>>" in command or ">>" in command:  # Append output
+                with open(outputFile, "a") as file:
+                    if output:
+                        file.write(output.strip() + "\n")  # Ensure newline after each append
+                    if error:
+                        print(error.strip())
+
             elif '1>' in command or '>' in command:
                 with open(outputFile, "w") as file:
-                    if output != "":
-                        file.write(output.strip())
-                    if error != "":
+                    if output:
+                        file.write(output.strip() + "\n")
+                    if error:
                         print(error.strip())
         else:
-            if output != "":
+            if output:
                 print(output)
-            elif error != '':
+            elif error:
                 print(error)
         
         if command.startswith("exit"):

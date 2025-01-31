@@ -4,8 +4,21 @@ import os
 import shlex
 from typing import List
 import subprocess 
+import readline  # Import readline for tab completion
 
 builtins = ["type", "echo", "exit", "pwd", "cd"]
+
+def complete_builtin(text, state):
+    """Autocomplete function for built-in commands."""
+    matches = [cmd for cmd in builtins if cmd.startswith(text)]
+    if state < len(matches):
+        return matches[state] + " "  # Add space after autocompletion
+    return None
+
+# Enable tab completion for built-in commands
+readline.parse_and_bind("tab: complete")
+readline.set_completer(complete_builtin)
+
 
 def type(arg) -> List[str]:  # str[0] -> output, str[1] -> error
     output = ""

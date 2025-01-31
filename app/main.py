@@ -30,8 +30,9 @@ def main():
             else:
                 args = command[5:].strip()
                 parsed_args = shlex.split(args)
-                
-                if parsed_args[1] == '1>':
+                if len(parsed_args) <= 2:
+                    print(parsed_args[1])
+                elif parsed_args[1] == '1>':
                     content = ""
                     if os.path.exists(parsed_args[0]):
                         with open(parsed_args[0], "r") as file:

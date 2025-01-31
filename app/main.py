@@ -93,14 +93,17 @@ def main():
         output, error = execute(command)
 
         if redirect:
-            if '1>' in command or '>' in command:
+            if '2>' in command:
                 with open(outputFile, "w") as file:
-                    file.write(output)
-            
-            elif '2>' in command:
+                    file.write(error.strip())
+                if output != "":
+                    print(output.strip())
+            elif '1>' in command or '>' in command:
                 with open(outputFile, "w") as file:
-                    file.write(error)
-                print(output)
+                    if output != "":
+                        file.write(output.strip())
+                    if error != "":
+                        print(error.strip())
         else:
             if output != "":
                 print(output)

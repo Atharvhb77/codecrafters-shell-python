@@ -88,9 +88,14 @@ def main():
         else:
             redirect = False
 
-        command = command.strip()
-        outputFile = outputFile.strip()
-        output, error = execute(command)
+        
+
+        if redirect:
+            left = left.strip()
+            outputFile = outputFile.strip()
+            output, error = execute(left)
+        else:
+            output, error = execute(command)
 
         if redirect:
             if '2>' in command:

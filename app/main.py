@@ -2,107 +2,110 @@ import sys
 import shutil
 import os
 import shlex
+from typing import List
+import subprocess 
 
+builtins = ["type", "echo", "exit", "pwd", "cd"]
+
+def type(arg) -> List[str]: # str[0] -> output, str[1] -> error
+    output = ""
+    error = ""
+    if arg in builtins:
+        output = f"{arg} is a shell builtin"
+    else:
+        path = shutil.which(arg)
+        if path:
+            output = f"{arg} is {path}"
+        else:
+            error = f"{arg}: not found"
+    return [output, error]
+
+def echo(command) -> List[str]: # str[0] -> output, str[1] -> error
+    args = command[5:].strip()
+    parsed_args = shlex.split(args)
+    output = " ".join(parsed_args)
+    return [output, ""]
+
+def cd(arg) -> List[str]: # str[0] -> output, str[1] -> error
+    try:
+        if arg.startswith("~"):
+            home = os.path.expanduser("~")
+            os.chdir(home)
+        else:
+            os.chdir(arg)
+        return ["", ""]
+    except:
+        return ["", f"cd: {arg}: No such file or directory"]
+
+def other(command) -> List[str]: # str[0] -> output, str[1] -> error
+    cmd = shlex.split(command)
+    path = shutil.which(cmd[0])
+    if path:
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            return [result.stdout, ""]
+        except Exception as e:
+            return ["", e]
+    else:
+        return ["", f"{cmd[0]}: command not found"]
+    
+def execute(command) -> List[str]:
+    cmd = shlex.split(command)
+    if cmd[0] == "type":
+            output, error = type(cmd[1])
+        
+    elif cmd[0] == "echo":
+        output, error = echo(command)
+    
+    elif cmd[0] == "exit":
+        output, error = cmd[1], ""
+    
+    elif cmd[0] == "pwd":
+        output, error = os.getcwd(), ""
+    
+    elif cmd[0] == "cd":
+        output, error = cd(cmd[1])
+
+    else:
+        output, error = other(command)
+    return [output, error]
 
 def main():
-    
-
-    # Wait for user input
-
     while True:
         sys.stdout.write("$ ")
         command = input()
-        cmd = command.split()
-        
-        if cmd[0] == 'exit':
-            
-            if len(cmd) < 2:
-                return 0
-            
-            return cmd[1]
-
-
-        elif cmd[0] == 'echo':
-            if len(cmd) < 2:
-                print('')
-            
-            else:
-                args = command[5:].strip()
-                parsed_args = shlex.split(args)
-                if len(parsed_args) < 2:
-                    print(parsed_args[0])
-                elif parsed_args[1] == '1>':
-                    content = ""
-                    if os.path.exists(parsed_args[0]):
-                        with open(parsed_args[0], "r") as file:
-                            content = file.read()
-                    else:
-                        content = parsed_args[0]
-                    
-
-                    with open(parsed_args[2], "w") as file:
-                        file.write(content + '\n')
-                    
-                elif parsed_args[1] == '2>':
-                    if os.path.exists(parsed_args[2]):
-                        print(parsed_args[0])
-                    else:
-                        print(f"{parsed_args[2]}: No such file or directory")
-
-                 
-                else:
-                    print(" ".join(parsed_args))
-            
-        
-        elif cmd[0] == 'type':
-            if len(cmd) < 2:
-                print('')
-            elif cmd[1] == 'echo' or cmd[1] == 'exit' or cmd[1] == 'type' or cmd[1] == 'pwd' or cmd[1] == 'cd':
-                print(f'{cmd[1]} is a shell builtin')
-
-            else:
-                cmd_path = shutil.which(cmd[1])
-                if cmd_path:
-                    print(f"{cmd[1]} is {cmd_path}")
-                else:
-                    print(f"{cmd[1]}: not found")
-
-        
-        elif cmd[0] == 'pwd':
-            current_dir = os.getcwd()
-            print(current_dir)
-
-        elif cmd[0] == 'cd':
-            
-            try:
-                if cmd[1] == '~':
-                    home_dir = os.path.expanduser("~")
-                    os.chdir(home_dir)
-                else:    
-                    os.chdir(cmd[1])
-
-            except:
-                print(f'cd: {cmd[1]}: No such file or directory')
-
-
-
+        redirect = True
+        if '>1' in command:
+            command, outputFile = command.split('1>')
+        elif '>2' in command:
+            command, outputFile = command.split('2>')
+        elif '>' in command:
+            command, outputFile = command.split('>')
         else:
-            args = shlex.split(command)
-            cmd_path = shutil.which(args[0])
+            redirect = False
 
-            if cmd_path:
-                os.system(command)
+        command = command.strip()
+        outputFile = outputFile.strip()
+        output, error = execute(command)
+
+        if redirect:
+            if '1>' in command or '>' in command:
+                with open(outputFile, "w") as file:
+                    file.write(output)
+            
+            elif '2>' in command:
+                with open(outputFile, "w") as file:
+                    file.write(error)
+                print(output)
+        else:
+            if output != "":
+                print(output)
             else:
-                print(f"{command}: command not found")
-
+                print(error)
         
-
-        
-
-
+        if command.startswith("exit"):
+            return 0
+            
 
 if __name__ == "__main__":
     main()
-    
-
-

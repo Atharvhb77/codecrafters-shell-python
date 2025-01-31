@@ -31,7 +31,7 @@ def main():
                 args = command[5:].strip()
                 parsed_args = shlex.split(args)
                 if len(parsed_args) < 2:
-                    print(parsed_args[1])
+                    print(parsed_args[0])
                 elif parsed_args[1] == '1>':
                     content = ""
                     if os.path.exists(parsed_args[0]):

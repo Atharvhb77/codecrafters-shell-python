@@ -56,7 +56,7 @@ def other(command) -> List[str]: # str[0] -> output, str[1] -> error
 def execute(command) -> List[str]:
     cmd = shlex.split(command)
     if cmd[0] == "type":
-            output, error = type(cmd[1])
+        output, error = type(cmd[1])
         
     elif cmd[0] == "echo":
         output, error = echo(command)

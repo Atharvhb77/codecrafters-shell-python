@@ -79,6 +79,7 @@ def main():
         sys.stdout.write("$ ")
         command = input()
         redirect = True
+        left = ""
         if '1>' in command:
             command, outputFile = command.split('1>')
         elif '2>' in command:

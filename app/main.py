@@ -2,14 +2,17 @@ import sys
 import shutil
 import os
 import shlex
-from typing import List
-import subprocess 
+import subprocess
 import readline  # Import readline for tab completion
+from typing import List
 
-builtins = ["type", "echo", "exit", "pwd", "cd"]
+builtins = ["echo", "exit", "pwd", "cd", "type"]
+# This will track the state of tab completions for a given prefix
 tab_state = {}
+
 def complete_builtin(text, state):
-    
+    """Autocomplete function for built-in commands and external executables."""
+    # Initialize tab state for this prefix if not already present
     if text not in tab_state:
         tab_state[text] = {'count': 0, 'matches': []}
     
@@ -49,18 +52,12 @@ def complete_builtin(text, state):
         return matches[state] + " "  # Add space after autocompletion
     return None
 
-
-
-
-
-# Enable tab completion for built-in commands
+# Enable tab completion for built-in commands and external executables
 readline.parse_and_bind("tab: complete")
 readline.set_completer(complete_builtin)
 
-
-def type(arg) -> List[str]:  # str[0] -> output, str[1] -> error
-    output = ""
-    error = ""
+def type(arg) -> List[str]:
+    output, error = "", ""
     if arg in builtins:
         output = f"{arg} is a shell builtin"
     else:
@@ -71,33 +68,28 @@ def type(arg) -> List[str]:  # str[0] -> output, str[1] -> error
             error = f"{arg}: not found"
     return [output, error]
 
-def echo(command) -> List[str]:  # str[0] -> output, str[1] -> error
+def echo(command) -> List[str]:
     args = command[5:].strip()
     parsed_args = shlex.split(args)
     output = " ".join(parsed_args)
     return [output, ""]
 
-def cd(arg) -> List[str]:  # str[0] -> output, str[1] -> error
+def cd(arg) -> List[str]:
     try:
         if arg.startswith("~"):
-            home = os.path.expanduser("~")
-            os.chdir(home)
+            os.chdir(os.path.expanduser("~"))
         else:
             os.chdir(arg)
         return ["", ""]
     except:
         return ["", f"cd: {arg}: No such file or directory"]
 
-def other(command) -> List[str]:  # str[0] -> output, str[1] -> error
+def other(command) -> List[str]:
     cmd = shlex.split(command)
     path = shutil.which(cmd[0])
     if path:
         try:
-            res = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-            )
+            res = subprocess.run(cmd, capture_output=True, text=True)
             return [res.stdout.rstrip(), res.stderr.rstrip()]
         except Exception as e:
             return ["", str(e)]
@@ -123,69 +115,47 @@ def execute(command) -> List[str]:
 def main():
     while True:
         sys.stdout.write("$ ")
-        command = input().strip()
+        sys.stdout.flush()
+        command = input()
 
-        redirect = False
-        append = False  # Track if we need to append output
+        # Reset tab_state for a new command
+        global tab_state
+        tab_state = {}
+
+        redirect = True
         left = ""
-        outputFile = ""
-        errorFile = ""
-        stderr_redirect = False
-
-        # Check for error redirection (2>)
-        if "2>>" in command:
-            left, errorFile = command.split("2>>")
-            stderr_redirect = True
-            append = True
-            redirect = True
-        elif "2>" in command:
-            left, errorFile = command.split("2>")
-            stderr_redirect = True
-            redirect = True
-
-        # Check for stdout redirection (>> or >)
-        elif "1>>" in command or ">>" in command:  # Append output
-            left, outputFile = command.split("1>>") if "1>>" in command else command.split(">>")
-            append = True
-            redirect = True
-        elif "1>" in command or ">" in command:  # Overwrite output
-            left, outputFile = command.split("1>") if "1>" in command else command.split(">")
-            redirect = True
+        if '1>' in command:
+            left, outputFile = command.split('1>')
+        elif '2>' in command:
+            left, outputFile = command.split('2>')
+        elif '>' in command:
+            left, outputFile = command.split('>')
+        elif '1>>' in command or '>>' in command:  # Append redirection support
+            left, outputFile = command.split('>>')
+            append_mode = True
+        else:
+            redirect = False
 
         if redirect:
             left = left.strip()
-            if stderr_redirect:
-                errorFile = errorFile.strip()
-            else:
-                outputFile = outputFile.strip()
+            outputFile = outputFile.strip()
             output, error = execute(left)
         else:
             output, error = execute(command)
 
-        # Handle redirections
         if redirect:
-            if stderr_redirect:  # Redirect stderr
-                mode = "a" if append else "w"
-                with open(errorFile, mode) as file:
-                    if error:
-                        file.write(error.strip() + "\n")  # Ensure newline
+            mode = "a" if ">>" in command else "w"  # Append mode if >> is used
+            if '2>' in command:
+                with open(outputFile, mode) as file:
+                    file.write(error.strip())
                 if output:
                     print(output.strip())
-
-            elif append:  # Append stdout
-                with open(outputFile, "a") as file:
+            else:
+                with open(outputFile, mode) as file:
                     if output:
-                        file.write(output.strip() + "\n")  # Ensure newline
+                        file.write(output.strip())
                     if error:
                         print(error.strip())
-
-            else:  # Overwrite stdout
-                with open(outputFile, "w") as file:
-                    if output:
-                        file.write(output.strip() + "\n")
-                    if error:
-                        print(error.strip())
-
         else:
             if output:
                 print(output)

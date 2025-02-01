@@ -9,6 +9,7 @@ import readline  # Import readline for tab completion
 builtins = ["type", "echo", "exit", "pwd", "cd"]
 tab_state = {}
 def complete_builtin(text, state):
+    
     if text not in tab_state:
         tab_state[text] = {'count': 0, 'matches': []}
     

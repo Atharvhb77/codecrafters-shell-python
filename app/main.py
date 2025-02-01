@@ -11,7 +11,7 @@ builtins = ["echo", "exit", "pwd", "cd", "type"]
 tab_state = {}
 
 def complete_builtin(text, state):
-    """Autocomplete function for built-in commands and external executables."""
+    
     # Initialize tab state for this prefix if not already present
     if text not in tab_state:
         tab_state[text] = {'count': 0, 'matches': []}
@@ -44,7 +44,8 @@ def complete_builtin(text, state):
     # If there are multiple matches, we return the list on the second TAB press
     if len(matches) > 1 and tab_state[text]['count'] == 1:
         # Print the matches on a new line, separated by 2 spaces
-        sys.stdout.write("\n" + "  ".join(matches) + "\n$ ")
+        print("\n" + "  ".join(matches))
+        sys.stdout.write("$ ")
         sys.stdout.flush()
         return None
     

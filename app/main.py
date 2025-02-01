@@ -6,7 +6,9 @@ import subprocess
 import readline  # Import readline for tab completion
 from typing import List
 
+# List of built-in commands
 builtins = ["echo", "exit", "pwd", "cd", "type"]
+
 # This will track the state of tab completions for a given prefix
 tab_state = {}
 

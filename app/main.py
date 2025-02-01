@@ -37,6 +37,7 @@ def complete_builtin(text, state):
             if os.path.isdir(path_dir):  # Ensure it's a valid directory
                 # Get the list of files in the directory
                 for filename in os.listdir(path_dir):
+                    # Check if filename matches the prefix and is executable
                     if filename.startswith(text) and os.access(os.path.join(path_dir, filename), os.X_OK):
                         matches.append(filename)
     

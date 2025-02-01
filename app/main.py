@@ -11,7 +11,6 @@ builtins = ["echo", "exit", "pwd", "cd", "type"]
 tab_state = {}
 
 def complete_builtin(text, state):
-    
     # Initialize tab state for this prefix if not already present
     if text not in tab_state:
         tab_state[text] = {'count': 0, 'matches': []}

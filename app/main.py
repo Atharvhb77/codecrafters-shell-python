@@ -4,68 +4,56 @@ import os
 import shlex
 import subprocess
 import readline  # Import readline for tab completion
-from typing import List
+from typing import List, Final, Dict
+import pathlib
 
 # List of built-in commands
-builtins = ["echo", "exit", "pwd", "cd", "type"]
+SHELL_BUILTINS: Final[List[str]] = ["echo", "exit", "pwd", "cd", "type"]
 
-# This will track the state of tab completions for a given prefix
-tab_state = {}
+# Dictionary to store programs in PATH
+PROGRAMS_IN_PATH: Dict[str, pathlib.Path] = {}
 
-def complete_builtin(text, state):
-    # Initialize tab state for this prefix if not already present
-    if text not in tab_state:
-        tab_state[text] = {'count': 0, 'matches': []}
-    
-    # If we are still in the first TAB press, ring the bell
-    if tab_state[text]['count'] == 0:
-        # Bell on the first TAB press
-        if state == 0:
-            sys.stdout.write('\a')  # Ring the bell
-            sys.stdout.flush()
-            return None  # Don't return anything on first press, just ring the bell
-        else:
-            tab_state[text]['count'] = 1
-    
-    # Now check for the matching executables in PATH
-    matches = tab_state[text]['matches']
-    if not matches:
-        # Get the directories in PATH
-        path_dirs = os.environ.get('PATH', '').split(os.pathsep)
-        
-        # Loop through each directory in PATH and check for executables
-        for path_dir in path_dirs:
-            if os.path.isdir(path_dir):  # Ensure it's a valid directory
-                # Get the list of files in the directory
-                try:
-                    for filename in os.listdir(path_dir):
-                        # Check if filename matches the prefix and is executable
-                        if filename.startswith(text) and os.access(os.path.join(path_dir, filename), os.X_OK):
-                            matches.append(filename)
-                except PermissionError:
-                    # Skip directories that cannot be accessed
-                    continue
-    
-    # If there are multiple matches, we return the list on the second TAB press
-    if len(matches) > 1 and tab_state[text]['count'] == 1:
-        # Print the matches on a new line, separated by 2 spaces
-        print("\n" + "  ".join(matches))
-        sys.stdout.write("$ ")
-        sys.stdout.flush()
-        return None
-    
-    # If we have only one match or it's the second TAB press, we return the matched command
+def parse_programs_in_path(path: str, programs: Dict[str, pathlib.Path]) -> None:
+    """Parse executables in the given PATH directory and add them to the programs dictionary."""
+    if os.path.isdir(path):
+        try:
+            for filename in os.listdir(path):
+                filepath = os.path.join(path, filename)
+                if os.access(filepath, os.X_OK) and not os.path.isdir(filepath):
+                    programs[filename] = pathlib.Path(filepath)
+        except PermissionError:
+            pass
+
+# Populate PROGRAMS_IN_PATH with executables from PATH
+for path_dir in os.environ.get("PATH", "").split(os.pathsep):
+    parse_programs_in_path(path_dir, PROGRAMS_IN_PATH)
+
+# List of all completions (built-ins + programs in PATH)
+COMPLETIONS: Final[List[str]] = [*SHELL_BUILTINS, *PROGRAMS_IN_PATH.keys()]
+
+def display_matches(substitution, matches, longest_match_length):
+    """Display matches for tab completion."""
+    print()
+    if matches:
+        print(" ".join(matches))
+    print("$ " + substitution, end="")
+
+def complete(text: str, state: int) -> str | None:
+    """Handle tab completion for commands."""
+    matches = [s for s in COMPLETIONS if s.startswith(text)]
     if state < len(matches):
-        return matches[state] + " "  # Add space after autocompletion
+        return matches[state] + " "  # Append space after autocompletion
     return None
 
 # Enable tab completion for built-in commands and external executables
+readline.set_completion_display_matches_hook(display_matches)
 readline.parse_and_bind("tab: complete")
-readline.set_completer(complete_builtin)
+readline.set_completer(complete)
 
-def type(arg) -> List[str]:
+def type(arg: str) -> List[str]:
+    """Handle the 'type' built-in command."""
     output, error = "", ""
-    if arg in builtins:
+    if arg in SHELL_BUILTINS:
         output = f"{arg} is a shell builtin"
     else:
         path = shutil.which(arg)
@@ -75,13 +63,15 @@ def type(arg) -> List[str]:
             error = f"{arg}: not found"
     return [output, error]
 
-def echo(command) -> List[str]:
+def echo(command: str) -> List[str]:
+    """Handle the 'echo' built-in command."""
     args = command[5:].strip()
     parsed_args = shlex.split(args)
     output = " ".join(parsed_args)
     return [output, ""]
 
-def cd(arg) -> List[str]:
+def cd(arg: str) -> List[str]:
+    """Handle the 'cd' built-in command."""
     try:
         if arg.startswith("~"):
             os.chdir(os.path.expanduser("~"))
@@ -91,7 +81,8 @@ def cd(arg) -> List[str]:
     except:
         return ["", f"cd: {arg}: No such file or directory"]
 
-def other(command) -> List[str]:
+def other(command: str) -> List[str]:
+    """Handle external commands."""
     cmd = shlex.split(command)
     path = shutil.which(cmd[0])
     if path:
@@ -103,7 +94,8 @@ def other(command) -> List[str]:
     else:
         return ["", f"{cmd[0]}: command not found"]
 
-def execute(command) -> List[str]:
+def execute(command: str) -> List[str]:
+    """Execute a command and return the output and error."""
     cmd = shlex.split(command)
     if cmd[0] == "type":
         output, error = type(cmd[1])
@@ -120,53 +112,76 @@ def execute(command) -> List[str]:
     return [output, error]
 
 def main():
+    """Main loop of the shell."""
     while True:
         sys.stdout.write("$ ")
         sys.stdout.flush()
         command = input()
 
-        # Reset tab_state for a new command
-        global tab_state
-        tab_state = {}
+        # Handle redirection
+        redirect = False
+        left = command
+        outputFile = ""
+        append_mode = False
+        error_redirect = False
 
-        redirect = True
-        left = ""
-        if '1>' in command:
-            left, outputFile = command.split('1>')
-        elif '2>' in command:
-            left, outputFile = command.split('2>')
-        elif '>' in command:
-            left, outputFile = command.split('>')
-        elif '1>>' in command or '>>' in command:  # Append redirection support
-            left, outputFile = command.split('>>')
+        if '2>>' in command:
+            left, outputFile = command.split('2>>', 1)  # Split on first occurrence of '2>>'
+            redirect = True
             append_mode = True
-        else:
-            redirect = False
+            error_redirect = True
+        elif '1>>' in command:
+            left, outputFile = command.split('1>>', 1)  # Split on first occurrence of '>>'
+            redirect = True
+            append_mode = True
+        elif '>>' in command:
+            left, outputFile = command.split('>>', 1)  # Split on first occurrence of '>>'
+            redirect = True
+            append_mode = True
+        elif '2>' in command:
+            left, outputFile = command.split('2>', 1)  # Split on first occurrence of '2>'
+            redirect = True
+            error_redirect = True
+            append_mode = False
+        elif '1>' in command:
+            left, outputFile = command.split('1>', 1)  # Split on first occurrence of '2>'
+            redirect = True
+            error_redirect = False
+            append_mode = False
+        elif '>' in command:
+            left, outputFile = command.split('>', 1)  # Split on first occurrence of '>'
+            redirect = True
+            append_mode = False
 
         if redirect:
             left = left.strip()
             outputFile = outputFile.strip()
-            output, error = execute(left)
-        else:
-            output, error = execute(command)
 
-        if redirect:
-            mode = "a" if ">>" in command else "w"  # Append mode if >> is used
-            if '2>' in command:
+            # Execute the command
+            output, error = execute(left)
+
+            # Write output or error to the file
+            mode = "a" if append_mode else "w"
+            if error_redirect:
                 with open(outputFile, mode) as file:
-                    file.write(error.strip())
+                    if error:
+                        file.write(error.strip() + "\n")  # Add newline after the error message
                 if output:
                     print(output.strip())
             else:
                 with open(outputFile, mode) as file:
+                
                     if output:
-                        file.write(output.strip())
-                    if error:
-                        print(error.strip())
+                        file.write(output.strip() + "\n")
+                    
+                if error:
+                    print(error.strip())
         else:
+            # Execute the command without redirection
+            output, error = execute(command)
             if output:
                 print(output)
-            elif error:
+            if error:
                 print(error)
 
         if command.startswith("exit"):
